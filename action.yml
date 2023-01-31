@@ -81,23 +81,6 @@ runs:
             BUILD_CMD="$BUILD_CMD --tag $tag"
           }
 
-          # array::each add_tag $TAGS_SPLITS
-
-          array::each() {
-            local fn=$1
-            local args=${@:2}
-
-            # @TODO GLOBAL, make outsize can get
-            Z_ARRAY_INDEX=0
-            local index=0
-            for element in ${args[@]}; do
-              Z_ARRAY_INDEX=$index
-              $fn $index $element
-
-              index=$((index + 1))
-            done
-          }
-
           array::each add_tag $TAGS_SPLITS
         fi
 
