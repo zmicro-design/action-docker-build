@@ -5,9 +5,21 @@ branding:
   icon: 'message-square'
   color: 'green'
 inputs:
-  version:
+  tags:
     required: false
-    description: specify zmicro version
+    description: specify build tags
+  build-args:
+    required: false
+    description: specify build build-args
+  platforms:
+    required: false
+    description: specify build platforms
+  cache-from:
+    required: false
+    description: specify build cache-from
+  cache-to:
+    required: false
+    description: specify build cache-to
 outputs:
   random-number:
     description: 'Random number'
