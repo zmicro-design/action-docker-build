@@ -1,7 +1,7 @@
 # GitHub Action to Docker Build
 
-![https://github.com/zmicro-design/action-setup-docker-build](https://img.shields.io/github/v/release/zmicro-design/action-setup-docker-build)
-![https://github.com/zmicro-design/action-setup-docker-build](https://github.com/zmicro-design/action-setup-docker-build/workflows//Publish/badge.svg)
+![https://github.com/zmicro-design/action-docker-build](https://img.shields.io/github/v/release/zmicro-design/action-docker-build)
+![https://github.com/zmicro-design/action-docker-build](https://github.com/zmicro-design/action-docker-build/workflows//Publish/badge.svg)
 
 ### Usage
 
@@ -21,7 +21,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Docker Build
-        uses: zmicro-design/action-setup-docker-build@v1
+        uses: zmicro-design/action-docker-build@v1
 ```
 
 ### License

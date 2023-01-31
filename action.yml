@@ -1,5 +1,5 @@
 name: 'Docker Build (+buildx) with Zmicro'
-description: 'github action for setuping docker (+buildx) with Zmicro'
+description: 'github action for docker (+buildx) with Zmicro'
 author: 'Zero <GitHub: whatwewant>'
 branding:
   icon: 'message-square'
@@ -16,8 +16,11 @@ outputs:
 runs:
   using: composite
   steps:
+    - name: Set up Zmicro
+      uses: zmicro-design/action-setup-zmicro@v1
+
     - name: Set up Docker
-      uses: zmicro-design/action-setup-docker-build@v1
+      uses: zmicro-design/action-setup-docker@v1
 
     - name: Run Docker Build (+buildx)
       shell: bash

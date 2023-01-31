@@ -1,5 +1,5 @@
 {
-  "name": "@zmicro-design/action-setup-docker-build",
+  "name": "@zmicro-design/action-docker-build",
   "version": "0.0.2",
   "description": "GitHub Action to Docker Build",
   "keywords": [
@@ -7,7 +7,7 @@
     "zmicro",
     "docker"
   ],
-  "repository": "https://github.com/whatwewant/action-setup-docker-build",
+  "repository": "https://github.com/whatwewant/action-docker-build",
   "license": "MIT",
   "author": "Zero <tobewhatwewant@gmail.com>",
   "main": "dist/index.js",
