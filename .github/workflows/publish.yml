@@ -36,7 +36,7 @@ jobs:
           echo "::set-output name=tags::${IMAGE_TAGS}"
         shell: bash
         env:
-          ACTION_IMAGE_NAMESPACE: ${{ secrets.DOCKERHUB_USERNAME }}
+          ACTION_IMAGE_NAMESPACE: zmicro-design
 
       - name: Test Docker Build
         uses: ./
