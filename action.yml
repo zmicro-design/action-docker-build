@@ -1,0 +1,89 @@
+name: 'Docker Build (+buildx) with Zmicro'
+description: 'github action for setuping docker (+buildx) with Zmicro'
+author: 'Zero <GitHub: whatwewant>'
+branding:
+  icon: 'message-square'
+  color: 'green'
+inputs:
+  version:
+    required: false
+    description: specify zmicro version
+outputs:
+  random-number:
+    description: 'Random number'
+    value: ${{ steps.random-number-generator.outputs.random-number }}
+
+runs:
+  using: composite
+  steps:
+    - name: Set up Docker
+      uses: zmicro-design/action-setup-docker-build@v1
+
+    - name: Run Docker Build (+buildx)
+      shell: bash
+      run: |
+        BUILD_CMD="docker buildx build"
+
+        TAGS=${{ inputs.tags }}
+        BUILD_ARGS=${{ inputs.build-args }}
+        PLATFORMS=${{ inputs.platforms }}
+        CACHE_FROM=${{ inputs.cache-from }}
+        CACHE_TO=${{ inputs.cache-to }}
+
+        if [ -n "$BUILD_ARGS" ]; then
+          BUILD_CMD="$BUILD_CMD --build-arg $BUILD_ARGS"
+        fi
+
+        if [ -n "$CACHE_FROM" ]; then
+          BUILD_CMD="$BUILD_CMD --cache-from $CACHE_FROM"
+        fi
+
+        if [ -n "$CACHE_TO" ]; then
+          BUILD_CMD="$BUILD_CMD --cache-to $CACHE_TO"
+        fi
+
+        if [ -n "$PLATFORMS" ]; then
+          BUILD_CMD="$BUILD_CMD --platform $PLATFORMS"
+        fi
+
+        if [ -n "$TAGS" ]; then
+          TAGS_SPLITS=$(zmicro fn string::split , $TAGS)
+          # for tag in ${TAGS_SPLITS[@]}; do
+          #   BUILD_CMD="$BUILD_CMD --tag $tag"
+          # done
+
+          add_tag() {
+            local tag=$2
+            BUILD_CMD="$BUILD_CMD --tag $tag"
+          }
+
+          # zmicro fn array::each add_tag $TAGS_SPLITS
+
+          array::each() {
+            local fn=$1
+            local args=${@:2}
+
+            # @TODO GLOBAL, make outsize can get
+            Z_ARRAY_INDEX=0
+            local index=0
+            for element in ${args[@]}; do
+              Z_ARRAY_INDEX=$index
+              $fn $index $element
+
+              index=$((index + 1))
+            done
+          }
+
+          array::each add_tag $TAGS_SPLITS
+        fi
+
+        TMP_DATA_DIR="/tmp/$(zmicro fn os::random_string 6)"
+        if [ ! -d "$TMP_DATA_DIR" ]; then
+          mkdir -p $TMP_DATA_DIR
+        fi
+        BUILD_CMD="$BUILD_CMD --iidfile $TMP_DATA_DIR/iidfile"
+        BUILD_CMD="$BUILD_CMD --metadata-file $TMP_DATA_DIR/metadata-file"
+
+        zmicro fn log::info "[$(timstamp)] CMD: $BUILD_CMD"
+        $BUILD_CMD
+
