@@ -39,7 +39,7 @@ runs:
       uses: zmicro-design/action-setup-docker@v1
 
     - name: Run Docker Build (+buildx)
-      shell: bash
+      shell: zmicro 
       run: |
         BUILD_CMD="docker buildx build"
 
@@ -71,7 +71,7 @@ runs:
         fi
 
         if [ -n "$TAGS" ]; then
-          TAGS_SPLITS=$(zmicro fn string::split , $TAGS)
+          TAGS_SPLITS=$(string::split , $TAGS)
           # for tag in ${TAGS_SPLITS[@]}; do
           #   BUILD_CMD="$BUILD_CMD --tag $tag"
           # done
@@ -81,7 +81,7 @@ runs:
             BUILD_CMD="$BUILD_CMD --tag $tag"
           }
 
-          # zmicro fn array::each add_tag $TAGS_SPLITS
+          # array::each add_tag $TAGS_SPLITS
 
           array::each() {
             local fn=$1
@@ -101,7 +101,7 @@ runs:
           array::each add_tag $TAGS_SPLITS
         fi
 
-        TMP_DATA_DIR="/tmp/$(zmicro fn os::random_string 6)"
+        TMP_DATA_DIR="/tmp/$(os::random_string 6)"
         if [ ! -d "$TMP_DATA_DIR" ]; then
           mkdir -p $TMP_DATA_DIR
         fi
@@ -109,6 +109,6 @@ runs:
         BUILD_CMD="$BUILD_CMD --metadata-file $TMP_DATA_DIR/metadata-file"
         BUILD_CMD="$BUILD_CMD ."
 
-        zmicro fn log::info "[$(date)] CMD: $BUILD_CMD"
+        log::info "[$(date)] CMD: $BUILD_CMD"
         $BUILD_CMD
 
