@@ -8,6 +8,10 @@ inputs:
   tags:
     required: false
     description: specify build tags
+  push:
+    required: false
+    description: specify whether to push remote
+    default: 'fasle'
   build-args:
     required: false
     description: specify build build-args
@@ -39,11 +43,16 @@ runs:
       run: |
         BUILD_CMD="docker buildx build"
 
+        IS_PUSH={{ inputs.push }}
         TAGS=${{ inputs.tags }}
         BUILD_ARGS=${{ inputs.build-args }}
         PLATFORMS=${{ inputs.platforms }}
         CACHE_FROM=${{ inputs.cache-from }}
         CACHE_TO=${{ inputs.cache-to }}
+
+        if [ "$IS_PUSH" = "true" ]; then
+          BUILD_CMD="$BUILD_CMD --push"
+        fi
 
         if [ -n "$BUILD_ARGS" ]; then
           BUILD_CMD="$BUILD_CMD --build-arg $BUILD_ARGS"
@@ -98,7 +107,8 @@ runs:
         fi
         BUILD_CMD="$BUILD_CMD --iidfile $TMP_DATA_DIR/iidfile"
         BUILD_CMD="$BUILD_CMD --metadata-file $TMP_DATA_DIR/metadata-file"
+        BUILD_CMD="$BUILD_CMD ."
 
-        zmicro fn log::info "[$(timstamp)] CMD: $BUILD_CMD"
+        zmicro fn log::info "[$(date)] CMD: $BUILD_CMD"
         $BUILD_CMD
 

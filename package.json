@@ -1,6 +1,6 @@
 {
   "name": "@zmicro-design/action-docker-build",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "GitHub Action to Docker Build",
   "keywords": [
     "action",
