@@ -39,7 +39,7 @@ runs:
       uses: zmicro-design/action-setup-docker@v1
 
     - name: Run Docker Build (+buildx)
-      shell: zmicro 
+      shell: /bin/zmicro 
       run: |
         BUILD_CMD="docker buildx build"
 
