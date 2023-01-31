@@ -24,6 +24,9 @@ inputs:
   cache-to:
     required: false
     description: specify build cache-to
+  labels:
+    required: false
+    description: specify build labels
 outputs:
   random-number:
     description: "Random number"
