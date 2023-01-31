@@ -39,76 +39,84 @@ runs:
       uses: zmicro-design/action-setup-docker@v1
 
     - name: Run Docker Build (+buildx)
-      shell: /bin/zmicro 
+      shell: bash
       run: |
-        BUILD_CMD="docker buildx build"
+        SCRIPT="$PWD/script.sh"
+        cat << EOF > $SCRIPT
+          #!/bin/zmicro
 
-        IS_PUSH=${{ inputs.push }}
-        TAGS=${{ inputs.tags }}
-        BUILD_ARGS=${{ inputs.build-args }}
-        PLATFORMS=${{ inputs.platforms }}
-        CACHE_FROM=${{ inputs.cache-from }}
-        CACHE_TO=${{ inputs.cache-to }}
+          BUILD_CMD="docker buildx build"
 
-        if [ "$IS_PUSH" = "true" ]; then
-          BUILD_CMD="$BUILD_CMD --push"
-        fi
+          IS_PUSH=${{ inputs.push }}
+          TAGS=${{ inputs.tags }}
+          BUILD_ARGS=${{ inputs.build-args }}
+          PLATFORMS=${{ inputs.platforms }}
+          CACHE_FROM=${{ inputs.cache-from }}
+          CACHE_TO=${{ inputs.cache-to }}
 
-        if [ -n "$BUILD_ARGS" ]; then
-          BUILD_CMD="$BUILD_CMD --build-arg $BUILD_ARGS"
-        fi
+          if [ "$IS_PUSH" = "true" ]; then
+            BUILD_CMD="$BUILD_CMD --push"
+          fi
 
-        if [ -n "$CACHE_FROM" ]; then
-          BUILD_CMD="$BUILD_CMD --cache-from $CACHE_FROM"
-        fi
+          if [ -n "$BUILD_ARGS" ]; then
+            BUILD_CMD="$BUILD_CMD --build-arg $BUILD_ARGS"
+          fi
 
-        if [ -n "$CACHE_TO" ]; then
-          BUILD_CMD="$BUILD_CMD --cache-to $CACHE_TO"
-        fi
+          if [ -n "$CACHE_FROM" ]; then
+            BUILD_CMD="$BUILD_CMD --cache-from $CACHE_FROM"
+          fi
 
-        if [ -n "$PLATFORMS" ]; then
-          BUILD_CMD="$BUILD_CMD --platform $PLATFORMS"
-        fi
+          if [ -n "$CACHE_TO" ]; then
+            BUILD_CMD="$BUILD_CMD --cache-to $CACHE_TO"
+          fi
 
-        if [ -n "$TAGS" ]; then
-          TAGS_SPLITS=$(string::split , $TAGS)
-          # for tag in ${TAGS_SPLITS[@]}; do
-          #   BUILD_CMD="$BUILD_CMD --tag $tag"
-          # done
+          if [ -n "$PLATFORMS" ]; then
+            BUILD_CMD="$BUILD_CMD --platform $PLATFORMS"
+          fi
 
-          add_tag() {
-            local tag=$2
-            BUILD_CMD="$BUILD_CMD --tag $tag"
-          }
+          if [ -n "$TAGS" ]; then
+            TAGS_SPLITS=$(string::split , $TAGS)
+            # for tag in ${TAGS_SPLITS[@]}; do
+            #   BUILD_CMD="$BUILD_CMD --tag $tag"
+            # done
 
-          # array::each add_tag $TAGS_SPLITS
+            add_tag() {
+              local tag=$2
+              BUILD_CMD="$BUILD_CMD --tag $tag"
+            }
 
-          array::each() {
-            local fn=$1
-            local args=${@:2}
+            # array::each add_tag $TAGS_SPLITS
 
-            # @TODO GLOBAL, make outsize can get
-            Z_ARRAY_INDEX=0
-            local index=0
-            for element in ${args[@]}; do
-              Z_ARRAY_INDEX=$index
-              $fn $index $element
+            array::each() {
+              local fn=$1
+              local args=${@:2}
 
-              index=$((index + 1))
-            done
-          }
+              # @TODO GLOBAL, make outsize can get
+              Z_ARRAY_INDEX=0
+              local index=0
+              for element in ${args[@]}; do
+                Z_ARRAY_INDEX=$index
+                $fn $index $element
 
-          array::each add_tag $TAGS_SPLITS
-        fi
+                index=$((index + 1))
+              done
+            }
 
-        TMP_DATA_DIR="/tmp/$(os::random_string 6)"
-        if [ ! -d "$TMP_DATA_DIR" ]; then
-          mkdir -p $TMP_DATA_DIR
-        fi
-        BUILD_CMD="$BUILD_CMD --iidfile $TMP_DATA_DIR/iidfile"
-        BUILD_CMD="$BUILD_CMD --metadata-file $TMP_DATA_DIR/metadata-file"
-        BUILD_CMD="$BUILD_CMD ."
+            array::each add_tag $TAGS_SPLITS
+          fi
 
-        log::info "[$(date)] CMD: $BUILD_CMD"
-        $BUILD_CMD
+          TMP_DATA_DIR="/tmp/$(os::random_string 6)"
+          if [ ! -d "$TMP_DATA_DIR" ]; then
+            mkdir -p $TMP_DATA_DIR
+          fi
+          BUILD_CMD="$BUILD_CMD --iidfile $TMP_DATA_DIR/iidfile"
+          BUILD_CMD="$BUILD_CMD --metadata-file $TMP_DATA_DIR/metadata-file"
+          BUILD_CMD="$BUILD_CMD ."
+
+          log::info "[$(date)] CMD: $BUILD_CMD"
+          $BUILD_CMD
+        EOF
+
+        zmicro $SCRIPT
+       
 
