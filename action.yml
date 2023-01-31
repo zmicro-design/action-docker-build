@@ -1,9 +1,9 @@
-name: 'Docker Build (+buildx) with Zmicro'
-description: 'github action for docker (+buildx) with Zmicro'
-author: 'Zero <GitHub: whatwewant>'
+name: "Docker Build (+buildx) with Zmicro"
+description: "github action for docker (+buildx) with Zmicro"
+author: "Zero <GitHub: whatwewant>"
 branding:
-  icon: 'message-square'
-  color: 'green'
+  icon: "message-square"
+  color: "green"
 inputs:
   tags:
     required: false
@@ -11,7 +11,7 @@ inputs:
   push:
     required: false
     description: specify whether to push remote
-    default: 'fasle'
+    default: "fasle"
   build-args:
     required: false
     description: specify build build-args
@@ -26,7 +26,7 @@ inputs:
     description: specify build cache-to
 outputs:
   random-number:
-    description: 'Random number'
+    description: "Random number"
     value: ${{ steps.random-number-generator.outputs.random-number }}
 
 runs:
@@ -39,84 +39,75 @@ runs:
       uses: zmicro-design/action-setup-docker@v1
 
     - name: Run Docker Build (+buildx)
-      shell: bash
+      shell: /bin/zmicro {0}
       run: |
-        SCRIPT="$PWD/script.sh"
-        cat << EOF > $SCRIPT
-          #!/bin/zmicro
+        BUILD_CMD="docker buildx build"
 
-          BUILD_CMD="docker buildx build"
+        IS_PUSH=${{ inputs.push }}
+        TAGS=${{ inputs.tags }}
+        BUILD_ARGS=${{ inputs.build-args }}
+        PLATFORMS=${{ inputs.platforms }}
+        CACHE_FROM=${{ inputs.cache-from }}
+        CACHE_TO=${{ inputs.cache-to }}
 
-          IS_PUSH=${{ inputs.push }}
-          TAGS=${{ inputs.tags }}
-          BUILD_ARGS=${{ inputs.build-args }}
-          PLATFORMS=${{ inputs.platforms }}
-          CACHE_FROM=${{ inputs.cache-from }}
-          CACHE_TO=${{ inputs.cache-to }}
+        if [ "$IS_PUSH" = "true" ]; then
+          BUILD_CMD="$BUILD_CMD --push"
+        fi
 
-          if [ "$IS_PUSH" = "true" ]; then
-            BUILD_CMD="$BUILD_CMD --push"
-          fi
+        if [ -n "$BUILD_ARGS" ]; then
+          BUILD_CMD="$BUILD_CMD --build-arg $BUILD_ARGS"
+        fi
 
-          if [ -n "$BUILD_ARGS" ]; then
-            BUILD_CMD="$BUILD_CMD --build-arg $BUILD_ARGS"
-          fi
+        if [ -n "$CACHE_FROM" ]; then
+          BUILD_CMD="$BUILD_CMD --cache-from $CACHE_FROM"
+        fi
 
-          if [ -n "$CACHE_FROM" ]; then
-            BUILD_CMD="$BUILD_CMD --cache-from $CACHE_FROM"
-          fi
+        if [ -n "$CACHE_TO" ]; then
+          BUILD_CMD="$BUILD_CMD --cache-to $CACHE_TO"
+        fi
 
-          if [ -n "$CACHE_TO" ]; then
-            BUILD_CMD="$BUILD_CMD --cache-to $CACHE_TO"
-          fi
+        if [ -n "$PLATFORMS" ]; then
+          BUILD_CMD="$BUILD_CMD --platform $PLATFORMS"
+        fi
 
-          if [ -n "$PLATFORMS" ]; then
-            BUILD_CMD="$BUILD_CMD --platform $PLATFORMS"
-          fi
+        if [ -n "$TAGS" ]; then
+          TAGS_SPLITS=$(string::split , $TAGS)
+          # for tag in ${TAGS_SPLITS[@]}; do
+          #   BUILD_CMD="$BUILD_CMD --tag $tag"
+          # done
 
-          if [ -n "$TAGS" ]; then
-            TAGS_SPLITS=$(string::split , $TAGS)
-            # for tag in ${TAGS_SPLITS[@]}; do
-            #   BUILD_CMD="$BUILD_CMD --tag $tag"
-            # done
+          add_tag() {
+            local tag=$2
+            BUILD_CMD="$BUILD_CMD --tag $tag"
+          }
 
-            add_tag() {
-              local tag=$2
-              BUILD_CMD="$BUILD_CMD --tag $tag"
-            }
+          # array::each add_tag $TAGS_SPLITS
 
-            # array::each add_tag $TAGS_SPLITS
+          array::each() {
+            local fn=$1
+            local args=${@:2}
 
-            array::each() {
-              local fn=$1
-              local args=${@:2}
+            # @TODO GLOBAL, make outsize can get
+            Z_ARRAY_INDEX=0
+            local index=0
+            for element in ${args[@]}; do
+              Z_ARRAY_INDEX=$index
+              $fn $index $element
 
-              # @TODO GLOBAL, make outsize can get
-              Z_ARRAY_INDEX=0
-              local index=0
-              for element in ${args[@]}; do
-                Z_ARRAY_INDEX=$index
-                $fn $index $element
+              index=$((index + 1))
+            done
+          }
 
-                index=$((index + 1))
-              done
-            }
+          array::each add_tag $TAGS_SPLITS
+        fi
 
-            array::each add_tag $TAGS_SPLITS
-          fi
+        TMP_DATA_DIR="/tmp/$(os::random_string 6)"
+        if [ ! -d "$TMP_DATA_DIR" ]; then
+          mkdir -p $TMP_DATA_DIR
+        fi
+        BUILD_CMD="$BUILD_CMD --iidfile $TMP_DATA_DIR/iidfile"
+        BUILD_CMD="$BUILD_CMD --metadata-file $TMP_DATA_DIR/metadata-file"
+        BUILD_CMD="$BUILD_CMD ."
 
-          TMP_DATA_DIR="/tmp/$(os::random_string 6)"
-          if [ ! -d "$TMP_DATA_DIR" ]; then
-            mkdir -p $TMP_DATA_DIR
-          fi
-          BUILD_CMD="$BUILD_CMD --iidfile $TMP_DATA_DIR/iidfile"
-          BUILD_CMD="$BUILD_CMD --metadata-file $TMP_DATA_DIR/metadata-file"
-          BUILD_CMD="$BUILD_CMD ."
-
-          log::info "[$(date)] CMD: $BUILD_CMD"
-          $BUILD_CMD
-        EOF
-
-        zmicro $SCRIPT
-       
-
+        log::info "[$(date)] CMD: $BUILD_CMD"
+        $BUILD_CMD
