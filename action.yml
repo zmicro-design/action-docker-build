@@ -12,6 +12,9 @@ inputs:
     required: false
     description: specify whether to push remote
     default: "fasle"
+  context:
+    required: false
+    description: specify build context
   build-args:
     required: false
     description: specify build build-args
@@ -48,6 +51,7 @@ runs:
 
         IS_PUSH=${{ inputs.push }}
         TAGS=${{ inputs.tags }}
+        BUILD_CONTEXT=${{ inputs.context }}
         BUILD_ARGS=${{ inputs.build-args }}
         PLATFORMS=${{ inputs.platforms }}
         CACHE_FROM=${{ inputs.cache-from }}
@@ -55,6 +59,10 @@ runs:
 
         if [ "$IS_PUSH" = "true" ]; then
           BUILD_CMD="$BUILD_CMD --push"
+        fi
+
+        if [ -z "$BUILD_CONTEXT" ]; then
+          BUILD_CONTEXT="."
         fi
 
         if [ -n "$BUILD_ARGS" ]; then
@@ -93,7 +101,7 @@ runs:
         fi
         BUILD_CMD="$BUILD_CMD --iidfile $TMP_DATA_DIR/iidfile"
         BUILD_CMD="$BUILD_CMD --metadata-file $TMP_DATA_DIR/metadata-file"
-        BUILD_CMD="$BUILD_CMD ."
+        BUILD_CMD="$BUILD_CMD ${BUILD_CONTEXT}"
 
         log::info "[$(date)] CMD: $BUILD_CMD"
         $BUILD_CMD
