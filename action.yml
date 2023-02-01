@@ -30,6 +30,9 @@ inputs:
   labels:
     required: false
     description: specify build labels
+  builder:
+    required: false
+    description: specify builder instance
 outputs:
   random-number:
     description: "Random number"
@@ -56,6 +59,7 @@ runs:
         PLATFORMS=${{ inputs.platforms }}
         CACHE_FROM=${{ inputs.cache-from }}
         CACHE_TO=${{ inputs.cache-to }}
+        BUILDER=${{ inputs.builder }}
 
         if [ "$IS_PUSH" = "true" ]; then
           BUILD_CMD="$BUILD_CMD --push"
@@ -93,6 +97,10 @@ runs:
           }
 
           array::each add_tag $TAGS_SPLITS
+        fi
+
+        if [ -n "$BUILDER" ]; then
+           BUILD_CMD="$BUILD_CMD --builder $BUILDER"
         fi
 
         TMP_DATA_DIR="/tmp/$(os::random_string 6)"
