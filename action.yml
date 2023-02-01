@@ -33,6 +33,18 @@ inputs:
   builder:
     required: false
     description: specify builder instance
+  network:
+    required: false
+    description: specify build network
+  stage:
+    required: false
+    description: specify build stage
+  dockerfile:
+    required: false
+    description: specify the dockerfile name, default => Dockerfile
+  ssh:
+    required: false
+    description: specify ssh agent socket or keys to expose to the build
 outputs:
   random-number:
     description: "Random number"
@@ -60,6 +72,10 @@ runs:
         CACHE_FROM=${{ inputs.cache-from }}
         CACHE_TO=${{ inputs.cache-to }}
         BUILDER=${{ inputs.builder }}
+        NETWORK=${{ inputs.network }}
+        STAGE=${{ inputs.stage }}
+        DOCKERFILE=${{ inputs.dockerfile }}
+        SSH=${{ inputs.ssh }}
 
         if [ "$IS_PUSH" = "true" ]; then
           BUILD_CMD="$BUILD_CMD --push"
@@ -101,6 +117,22 @@ runs:
 
         if [ -n "$BUILDER" ]; then
            BUILD_CMD="$BUILD_CMD --builder $BUILDER"
+        fi
+
+        if [ -n "$NETWORK" ]; then
+           BUILD_CMD="$BUILD_CMD --network $NETWORK"
+        fi
+
+        if [ -n "$STAGE" ]; then
+           BUILD_CMD="$BUILD_CMD --stage $STAGE"
+        fi
+
+        if [ -n "$DOCKERFILE" ]; then
+           BUILD_CMD="$BUILD_CMD -f $DOCKERFILE"
+        fi
+
+        if [ -n "$SSH" ]; then
+           BUILD_CMD="$BUILD_CMD --ssh $SSH"
         fi
 
         TMP_DATA_DIR="/tmp/$(os::random_string 6)"
