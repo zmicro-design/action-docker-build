@@ -14,6 +14,9 @@
 | cache-from | false | specify build cache-from |
 | cache-to | false | specify build cache-to |
 | labels | false | specify build labels |
+| registry | false | custom docker registry |
+| username | false | registry username |
+| password | false | registry password |
 
 ### Example
 
