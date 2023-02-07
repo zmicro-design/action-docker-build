@@ -45,6 +45,15 @@ inputs:
   ssh:
     required: false
     description: specify ssh agent socket or keys to expose to the build
+  registry:
+    description: "Server address of Docker registry. If not set then will default to Docker Hub"
+    required: false
+  username:
+    description: "Username used to log against the Docker registry"
+    required: false
+  password:
+    description: "Password or personal access token used to log against the Docker registry"
+    required: false
 outputs:
   random-number:
     description: "Random number"
@@ -58,6 +67,17 @@ runs:
 
     - name: Set up Docker
       uses: zmicro-design/action-setup-docker@v1
+
+    - name: Login Docker
+      shell: zmicro {0}
+      run: |
+        REGISTRY=${{ inputs.registry }}
+        USERNAME=${{ inputs.username }}
+        PASSWORD=${{ inputs.password }}
+
+        if [ -n "$USERNAME" ] && [ -n "$PASSWORD" ]; then
+          login::docker $USERNAME $PASSWORD $REGISTRY
+        fi
 
     - name: Run Docker Build (+buildx)
       shell: zmicro {0}
